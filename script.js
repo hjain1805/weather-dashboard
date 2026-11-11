@@ -19,6 +19,27 @@ let settings = { city: DEFAULT_CITY, units: 'metric' };
 let favorites = [];
 let currentCity = '';
 
+// Choose a background theme from OpenWeatherMap's current condition and icon suffix.
+function getThemeFromWeather(weather) {
+  const condition = String(weather?.weather?.[0]?.main || '').toLowerCase();
+  const icon = String(weather?.weather?.[0]?.icon || '').toLowerCase();
+  const isNight = icon.endsWith('n');
+  if (condition === 'clear') return isNight ? 'clear-night' : 'clear-day';
+  if (condition === 'clouds') return 'clouds';
+  if (condition === 'rain' || condition === 'drizzle') return 'rain';
+  if (condition === 'thunderstorm') return 'thunderstorm';
+  if (condition === 'snow') return 'snow';
+  if (['mist', 'haze', 'fog', 'smoke', 'dust', 'sand'].includes(condition)) return 'mist';
+  return 'default';
+}
+
+// Apply the selected weather theme to the page background.
+function applyTheme(weather) {
+  const themes = ['default', 'clear-day', 'clear-night', 'clouds', 'rain', 'thunderstorm', 'snow', 'mist'];
+  document.body.classList.remove(...themes.map((theme) => `theme-${theme}`));
+  document.body.classList.add(`theme-${getThemeFromWeather(weather)}`);
+}
+
 // Read the saved city list, treating malformed or unavailable storage as empty.
 function loadFavorites() {
   try {
@@ -212,6 +233,7 @@ function addDetail(container, icon, label, value) {
 
 // Render current conditions, including local sunrise and sunset times for the city's timezone.
 function renderCurrent(data) {
+  applyTheme(data);
   currentCard.replaceChildren();
   const top = makeElement('div', 'location-line');
   const location = makeElement('div', '');
