@@ -6,6 +6,7 @@ const API_BASE = 'https://api.openweathermap.org/data/2.5';
 const form = document.getElementById('search-form');
 const cityInput = document.getElementById('city-input');
 const searchButton = document.getElementById('search-button');
+const locationButton = document.getElementById('location-button');
 const statusMessage = document.getElementById('status');
 const errorMessage = document.getElementById('error-message');
 const weatherContent = document.getElementById('weather-content');
@@ -121,9 +122,26 @@ function buildUrl(endpoint, city, units) {
   return `${API_BASE}/${endpoint}?${query.toString()}`;
 }
 
+// Build an OpenWeatherMap URL from coordinates with the same units and API key as city search.
+function buildCoordinatesUrl(endpoint, latitude, longitude, units) {
+  const query = new URLSearchParams({ lat: latitude, lon: longitude, units, appid: API_KEY });
+  return `${API_BASE}/${endpoint}?${query.toString()}`;
+}
+
 // Fetch one OpenWeatherMap endpoint and report an HTTP error before attempting JSON parsing.
 async function fetchWeatherData(endpoint, city, units) {
   const response = await fetch(buildUrl(endpoint, city, units));
+  if (!response.ok) {
+    const error = new Error(`Weather request failed with status ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+  return response.json();
+}
+
+// Fetch an OpenWeatherMap endpoint by latitude and longitude and report HTTP failures consistently.
+async function fetchWeatherAtCoordinates(endpoint, latitude, longitude, units) {
+  const response = await fetch(buildCoordinatesUrl(endpoint, latitude, longitude, units));
   if (!response.ok) {
     const error = new Error(`Weather request failed with status ${response.status}`);
     error.status = response.status;
@@ -264,9 +282,58 @@ function showError(error) {
 // Set the request state and keep the search control in sync.
 function setLoading(isLoading, city) {
   searchButton.disabled = isLoading;
+  locationButton.disabled = isLoading;
   searchButton.textContent = isLoading ? 'Loading…' : 'Search →';
   statusMessage.textContent = isLoading ? `Getting weather for ${city}…` : '';
   weatherContent.setAttribute('aria-busy', String(isLoading));
+}
+
+// Resolve the browser's current position, with a ten-second timeout and clear geolocation errors.
+function getCurrentPosition() {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+  });
+}
+
+// Load current conditions and forecast for the user's coordinates, then save the API's city name.
+async function loadLocation() {
+  errorMessage.hidden = true;
+  errorMessage.textContent = '';
+  setLoading(true, 'your location');
+  try {
+    if (typeof API_KEY !== 'string' || !API_KEY.trim() || API_KEY === 'PASTE_KEY_HERE') {
+      const error = new Error('API key is not configured');
+      error.status = 401;
+      throw error;
+    }
+    if (!('geolocation' in navigator)) {
+      errorMessage.textContent = 'This browser does not support location services.';
+      errorMessage.hidden = false;
+      return;
+    }
+    const position = await getCurrentPosition();
+    const { latitude, longitude } = position.coords;
+    const [current, forecast] = await Promise.all([
+      fetchWeatherAtCoordinates('weather', latitude, longitude, settings.units),
+      fetchWeatherAtCoordinates('forecast', latitude, longitude, settings.units)
+    ]);
+    renderCurrent(current);
+    renderForecast(pickDailyForecast(forecast.list));
+    settings.city = current.name;
+    cityInput.value = current.name;
+    saveSettings();
+  } catch (error) {
+    if (error.code === 1) errorMessage.textContent = 'Location permission was denied. Allow location access and try again.';
+    else if (error.code === 2) errorMessage.textContent = 'Your location is unavailable. Check your device location settings and try again.';
+    else if (error.code === 3) errorMessage.textContent = 'Getting your location timed out. Please try again.';
+    else {
+      showError(error);
+      return;
+    }
+    errorMessage.hidden = false;
+  } finally {
+    setLoading(false, 'your location');
+  }
 }
 
 // Request current conditions and forecast together, then update and save the dashboard state.
@@ -313,6 +380,8 @@ form.addEventListener('submit', (event) => {
   const city = cityInput.value.trim();
   if (city) loadCity(city);
 });
+
+locationButton.addEventListener('click', loadLocation);
 
 unitButtons.forEach((button) => button.addEventListener('click', () => selectUnits(button.dataset.unit)));
 

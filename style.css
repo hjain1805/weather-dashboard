@@ -42,6 +42,9 @@ h1 span { color: #ad9aff; }
 .search-form input { flex: 1; min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font-size: 14px; }
 .search-form input::placeholder { color: #777b99; }
 .search-button { border: 0; border-radius: 10px; padding: 11px 16px; background: linear-gradient(120deg, #8174eb, #647fe5); color: white; font-weight: 600; cursor: pointer; transition: transform .2s, box-shadow .2s, opacity .2s; box-shadow: 0 5px 16px #7167d844; }
+.location-button { flex: 0 0 auto; border: 1px solid rgba(255,255,255,.18); border-radius: 10px; padding: 10px 12px; background: rgba(255,255,255,.07); color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; transition: background .2s, opacity .2s; }
+.location-button:hover:not(:disabled) { background: rgba(255,255,255,.14); }
+.location-button:disabled { opacity: .58; cursor: wait; }
 .search-button span { margin-left: 8px; font-size: 17px; }
 .search-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px #7167d866; }
 .search-button:disabled { opacity: .58; cursor: wait; }
@@ -101,6 +104,7 @@ footer { padding-top: 37px; color: #6e7290; text-align: center; font-size: 10px;
   .intro-copy { font-size: 13px; }
   .search-form { gap: 8px; }
   .search-button { padding: 10px 12px; }
+  .location-button { padding: 9px 8px; font-size: 11px; }
   .current-card { padding: 21px; }
   .forecast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .forecast-card { min-height: 190px; }
