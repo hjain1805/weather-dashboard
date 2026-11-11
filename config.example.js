@@ -1,0 +1,1 @@
+const API_KEY = "PASTE_KEY_HERE";

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101326">
+  <title>Weatherly — Local weather</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="dashboard">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Weatherly home"><span class="brand-mark" aria-hidden="true">✦</span> weatherly</a>
+      <div class="unit-control" role="group" aria-label="Temperature units">
+        <button class="unit-button is-active" type="button" data-unit="metric" aria-pressed="true">°C</button>
+        <button class="unit-button" type="button" data-unit="imperial" aria-pressed="false">°F</button>
+      </div>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">YOUR WEATHER, AT A GLANCE</p>
+      <h1 id="page-title">Find your <span>forecast.</span></h1>
+      <p class="intro-copy">A little clarity for whatever the sky has planned.</p>
+      <form id="search-form" class="search-form">
+        <label class="visually-hidden" for="city-input">Search for a city</label>
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="city-input" name="city" type="search" placeholder="Search a city…" autocomplete="off">
+        <button id="search-button" class="search-button" type="submit">Search <span aria-hidden="true">→</span></button>
+      </form>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <p id="error-message" class="error-message" role="alert" aria-live="polite" hidden></p>
+    </section>
+
+    <section id="weather-content" class="weather-content" aria-label="Weather results" aria-busy="false">
+      <section id="current-card" class="current-card card" aria-label="Current weather"></section>
+      <section class="forecast-section" aria-labelledby="forecast-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">COMING UP</p><h2 id="forecast-title">5-day forecast</h2></div>
+          <span class="forecast-note">Next five days</span>
+        </div>
+        <div id="forecast-grid" class="forecast-grid"></div>
+      </section>
+    </section>
+    <footer>Weather data by OpenWeatherMap</footer>
+  </main>
+</body>
+</html>
