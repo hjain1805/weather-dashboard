@@ -1,5 +1,6 @@
 const DEFAULT_CITY = 'Jaipur';
 const SETTINGS_KEY = 'weatherly-settings';
+const FAVORITES_KEY = 'weatherly-favorite-cities';
 const API_BASE = 'https://api.openweathermap.org/data/2.5';
 
 const form = document.getElementById('search-form');
@@ -11,8 +12,85 @@ const weatherContent = document.getElementById('weather-content');
 const currentCard = document.getElementById('current-card');
 const forecastGrid = document.getElementById('forecast-grid');
 const unitButtons = document.querySelectorAll('.unit-button');
+const favoriteCities = document.getElementById('favorite-cities');
 
 let settings = { city: DEFAULT_CITY, units: 'metric' };
+let favorites = [];
+let currentCity = '';
+
+// Read the saved city list, treating malformed or unavailable storage as empty.
+function loadFavorites() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY));
+    if (!Array.isArray(saved)) return [];
+    const unique = new Map();
+    saved.forEach((city) => {
+      if (typeof city === 'string' && city.trim() && !unique.has(city.trim().toLocaleLowerCase())) {
+        unique.set(city.trim().toLocaleLowerCase(), city.trim());
+      }
+    });
+    return [...unique.values()];
+  } catch (error) {
+    return [];
+  }
+}
+
+// Persist the current saved city list while keeping storage failures harmless.
+function saveFavorites() {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+  } catch (error) {
+    // The feature remains usable for this page session if storage is unavailable.
+  }
+}
+
+// Draw the saved cities as accessible buttons and wire their load and remove actions.
+function renderFavorites() {
+  favoriteCities.replaceChildren();
+  favorites.forEach((city) => {
+    const chip = makeElement('span', 'favorite-chip');
+    const loadButton = makeElement('button', 'favorite-city-button', city);
+    loadButton.type = 'button';
+    loadButton.setAttribute('aria-label', `Load weather for ${city}`);
+    loadButton.addEventListener('click', () => loadCity(city));
+    const removeButton = makeElement('button', 'favorite-remove', '×');
+    removeButton.type = 'button';
+    removeButton.setAttribute('aria-label', `Remove ${city} from saved cities`);
+    removeButton.addEventListener('click', () => removeFavorite(city));
+    chip.append(loadButton, removeButton);
+    favoriteCities.append(chip);
+  });
+}
+
+// Update the city heart button to reflect whether the current city is saved.
+function updateFavoriteButton() {
+  const button = currentCard.querySelector('.favorite-toggle');
+  if (!button) return;
+  const saved = favorites.some((city) => city.toLocaleLowerCase() === currentCity.toLocaleLowerCase());
+  button.classList.toggle('is-saved', saved);
+  button.textContent = saved ? '♥' : '♡';
+  button.setAttribute('aria-pressed', String(saved));
+  button.setAttribute('aria-label', saved ? 'Remove city from saved cities' : 'Save city');
+}
+
+// Add or remove the currently displayed city and refresh the saved city controls.
+function toggleFavorite() {
+  if (!currentCity) return;
+  const existing = favorites.find((city) => city.toLocaleLowerCase() === currentCity.toLocaleLowerCase());
+  if (existing) favorites = favorites.filter((city) => city.toLocaleLowerCase() !== currentCity.toLocaleLowerCase());
+  else favorites.push(currentCity);
+  saveFavorites();
+  renderFavorites();
+  updateFavoriteButton();
+}
+
+// Remove one saved city without changing the currently displayed weather.
+function removeFavorite(city) {
+  favorites = favorites.filter((saved) => saved.toLocaleLowerCase() !== city.toLocaleLowerCase());
+  saveFavorites();
+  renderFavorites();
+  updateFavoriteButton();
+}
 
 // Load saved preferences safely, using defaults if storage is unavailable or invalid.
 function loadSettings() {
@@ -120,10 +198,16 @@ function renderCurrent(data) {
   const top = makeElement('div', 'location-line');
   const location = makeElement('div', '');
   const place = [data.name, data.sys.country].filter(Boolean).join(', ');
+  currentCity = data.name;
   location.append(makeElement('h2', 'location-name', place));
   location.append(makeElement('p', 'location-date', formatDate(new Date(), { weekday: 'long', month: 'long', day: 'numeric' })));
   top.append(location);
+  const favoriteButton = makeElement('button', 'favorite-toggle', '♡');
+  favoriteButton.type = 'button';
+  favoriteButton.addEventListener('click', toggleFavorite);
+  top.append(favoriteButton);
   currentCard.append(top);
+  updateFavoriteButton();
 
   const main = makeElement('div', 'weather-main');
   const icon = document.createElement('img');
@@ -233,6 +317,8 @@ form.addEventListener('submit', (event) => {
 unitButtons.forEach((button) => button.addEventListener('click', () => selectUnits(button.dataset.unit)));
 
 loadSettings();
+favorites = loadFavorites();
+renderFavorites();
 cityInput.value = settings.city;
 unitButtons.forEach((button) => {
   const active = button.dataset.unit === settings.units;

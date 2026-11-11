@@ -45,6 +45,13 @@ h1 span { color: #ad9aff; }
 .search-button span { margin-left: 8px; font-size: 17px; }
 .search-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px #7167d866; }
 .search-button:disabled { opacity: .58; cursor: wait; }
+.favorite-cities { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 520px; margin: 13px auto 0; }
+.favorite-chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 7px 5px 11px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.055); color: var(--muted); font-size: 12px; }
+.favorite-city-button, .favorite-remove { border: 0; background: transparent; cursor: pointer; }
+.favorite-city-button { padding: 2px 0; color: inherit; }
+.favorite-chip:hover { border-color: rgba(167,139,250,.5); color: var(--ink); }
+.favorite-remove { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: var(--soft); font-size: 15px; }
+.favorite-remove:hover { background: rgba(255,255,255,.1); color: var(--ink); }
 :focus-visible { outline: 2px solid #c2b4ff; outline-offset: 3px; }
 .status, .error-message { min-height: 20px; margin: 12px 0 0; font-size: 13px; }
 .status { color: var(--muted); }
@@ -56,6 +63,9 @@ h1 span { color: #ad9aff; }
 .current-card::after { content: ''; position: absolute; right: -45px; top: -70px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(126,119,238,.2), transparent 68%); pointer-events: none; }
 .location-line { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; position: relative; z-index: 1; }
 .location-name { margin: 0; font: 700 20px Manrope, sans-serif; }
+.favorite-toggle { flex: 0 0 auto; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.05); color: var(--muted); font-size: 20px; cursor: pointer; }
+.favorite-toggle.is-saved { color: #ff8eae; border-color: rgba(255,142,174,.35); }
+.favorite-toggle:hover { background: rgba(255,255,255,.1); }
 .location-date { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
 .weather-main { display: flex; align-items: center; gap: 8px; margin: 16px 0 12px; position: relative; z-index: 1; }
 .weather-main img { width: 86px; height: 86px; margin-left: -8px; }
